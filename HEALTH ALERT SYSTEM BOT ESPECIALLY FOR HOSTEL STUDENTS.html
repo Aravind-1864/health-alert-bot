@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Health Alert Bot</title>
+    <style>
+        :root {
+            --primary: #005b96;
+            --secondary: #03396c;
+            --accent: #6497b1;
+            --light: #b3cde0;
+            --alert: #e74c3c;
+            --safe: #2ecc71;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--light);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 20px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: white;
+            margin: 0;
+            font-size: 2.2em;
+        }
+        
+        .health-form, .results, .health-log, .research, .login-form {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        textarea, input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        textarea:focus, input:focus, select:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 5px rgba(100, 151, 177, 0.3);
+        }
+        
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        button.secondary {
+            background: var(--accent);
+        }
+        
+        button.secondary:hover {
+            background: #528ba5;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .remedy {
+            background: #f0f8ff;
+            padding: 20px;
+            border-left: 5px solid var(--accent);
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+        
+        .alert {
+            background: #ffebee;
+            padding: 20px;
+            border-left: 5px solid var(--alert);
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+        
+        .log-entry {
+            background: #f5f5f5;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--safe);
+            transition: all 0.3s;
+        }
+        
+        .log-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .trend {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .disease-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        .disease-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            background: var(--light);
+            margin-right: 0;
+            color: var(--secondary);
+        }
+        
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .user-info {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dosage-info {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 5px solid var(--safe);
+        }
+        
+        .login-form {
+            max-width: 500px;
+            margin: 50px auto;
+        }
+        
+        .hospital-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 15px;
+            }
+            
+            .tab-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="login-section">
+            <div class="login-form">
+                <h2><span class="hospital-icon">🏥</span> Student Login</h2>
+                <div class="input-group">
+                    <label for="student-id">Student ID</label>
+                    <input type="text" id="student-id" placeholder="Enter your student ID">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password">
+                </div>
+                <div class="input-group">
+                    <label for="age">Your Age</label>
+                    <input type="number" id="age" min="15" max="30" placeholder="Enter your age (15-30)">
+                </div>
+                <button id="login-btn">Login</button>
+                <p style="text-align: center; margin-top: 15px;">Demo login: ID: 2023001, Password: demo123</p>
+            </div>
+        </div>
+
+        <div id="main-app" class="hidden">
+            <header>
+                <h1><span class="hospital-icon">🏥</span> Hostel Health Alert Bot</h1>
+                <p>Personalized health tracking and medical advice for students</p>
+            </header>
+
+            <div class="user-info">
+                <div>
+                    <strong>Student:</strong> <span id="display-student-id">-</span> | 
+                    <strong>Age:</strong> <span id="display-age">-</span>
+                </div>
+                <button id="logout-btn" class="secondary">Logout</button>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="openTab('tracker')">Health Tracker</button>
+                <button class="tab-btn" onclick="openTab('research')">Seasonal Diseases</button>
+                <button class="tab-btn" onclick="openTab('firstaid')">First Aid Guide</button>
+            </div>
+
+            <div id="tracker" class="tab-content active">
+                <div class="health-form">
+                    <h2><span class="hospital-icon">📊</span> Daily Health Tracker</h2>
+                    <div class="input-group">
+                        <label for="symptoms">Enter your symptoms (comma separated):</label>
+                        <textarea id="symptoms" rows="3" placeholder="e.g. fever, headache, cough"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="severity">Severity (1-10):</label>
+                        <input type="number" id="severity" min="1" max="10" placeholder="5">
+                    </div>
+                    <button id="analyze-btn">Analyze Symptoms</button>
+                </div>
+
+                <div class="results hidden" id="results">
+                    <h2><span class="hospital-icon">💊</span> Personalized Health Advice</h2>
+                    <div id="remedies-container"></div>
+                    <div id="medical-alert" class="alert hidden"></div>
+                    <div id="history-notice" class="hidden"></div>
+                    <button id="log-btn">Log This Entry</button>
+                </div>
+
+                <div class="health-log" id="health-log">
+                    <h2><span class="hospital-icon">📋</span> Your Health History</h2>
+                    <div id="trend-analysis"></div>
+                    <div id="log-entries"></div>
+                    <button id="clear-log" class="secondary">Clear History</button>
+                </div>
+            </div>
+
+            <div id="research" class="tab-content">
+                <div class="research">
+                    <h2><span class="hospital-icon">🌡️</span> Common Seasonal Diseases</h2>
+                    <p>Learn about prevention and first-aid measures for these common conditions:</p>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🦠</span> 1. Influenza (Flu)</h3>
+                        <p><strong>Symptoms:</strong> Fever, chills, muscle aches, cough, congestion</p>
+                        <p><strong>First Aid:</strong> Rest, fluids, antiviral medications if prescribed</p>
+                        <p><strong>Prevention:</strong> Annual flu vaccine, hand hygiene, avoid sick contacts</p>
+                        <div class="dosage-info">
+                            <h4>Recommended Dosages (by age):</h4>
+                            <p><strong>15-18 years:</strong> Paracetamol 500mg every 6 hours (max 4 doses/day)</p>
+                            <p><strong>19+ years:</strong> Paracetamol 500-1000mg every 6 hours (max 4g/day)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🤧</span> 2. Common Cold</h3>
+                        <p><strong>Symptoms:</strong> Runny nose, sore throat, cough, mild fatigue</p>
+                        <p><strong>First Aid:</strong> Warm fluids, throat lozenges, nasal decongestants</p>
+                        <p><strong>Prevention:</strong> Hand washing, avoid touching face, boost immunity</p>
+                        <div class="dosage-info">
+                            <h4>Recommended Dosages (by age):</h4>
+                            <p><strong>15-18 years:</strong> Pseudoephedrine 30mg every 6 hours (max 4 doses/day)</p>
+                            <p><strong>19+ years:</strong> Pseudoephedrine 60mg every 6 hours (max 240mg/day)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🦟</span> 3. Dengue Fever</h3>
+                        <p><strong>Symptoms:</strong> High fever, severe headache, joint pain, rash</p>
+                        <p><strong>First Aid:</strong> Hydration, paracetamol (avoid aspirin), rest</p>
+                        <p><strong>Prevention:</strong> Mosquito control, use repellents, wear long sleeves</p>
+                        <div class="dosage-info">
+                            <h4>Recommended Dosages (by age):</h4>
+                            <p><strong>All ages:</strong> Paracetamol 15mg/kg per dose (max 1g per dose, 4g/day)</p>
+                            <p><strong>Warning:</strong> Avoid NSAIDs like ibuprofen or aspirin</p>
+                        </div>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🤢</span> 4. Gastroenteritis</h3>
+                        <p><strong>Symptoms:</strong> Diarrhea, vomiting, stomach cramps, fever</p>
+                        <p><strong>First Aid:</strong> Oral rehydration, bland diet, rest</p>
+                        <p><strong>Prevention:</strong> Food hygiene, clean water, hand washing</p>
+                        <div class="dosage-info">
+                            <h4>Recommended Dosages (by age):</h4>
+                            <p><strong>15-18 years:</strong> Loperamide 2mg after first loose stool, then 1mg after each subsequent stool (max 4mg/day)</p>
+                            <p><strong>19+ years:</strong> Loperamide 4mg initially, then 2mg after each loose stool (max 8mg/day)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🌸</span> 5. Allergic Rhinitis</h3>
+                        <p><strong>Symptoms:</strong> Sneezing, runny nose, itchy eyes, congestion</p>
+                        <p><strong>First Aid:</strong> Antihistamines, nasal sprays, eye drops</p>
+                        <p><strong>Prevention:</strong> Avoid allergens, use air filters, keep windows closed</p>
+                        <div class="dosage-info">
+                            <h4>Recommended Dosages (by age):</h4>
+                            <p><strong>15-18 years:</strong> Loratadine 10mg once daily or Cetirizine 5-10mg once daily</p>
+                            <p><strong>19+ years:</strong> Loratadine 10mg once daily or Cetirizine 10mg once daily</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="firstaid" class="tab-content">
+                <div class="research">
+                    <h2><span class="hospital-icon">🩹</span> First Aid Quick Guide</h2>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🔥</span> Burns</h3>
+                        <p><strong>Treatment:</strong></p>
+                        <ol>
+                            <li>Cool under running water for 10-15 minutes</li>
+                            <li>Remove jewelry/clothing near the burn</li>
+                            <li>Cover with sterile non-stick dressing</li>
+                            <li>Don't apply butter, oil or ice</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🤕</span> Head Injury</h3>
+                        <p><strong>Treatment:</strong></p>
+                        <ol>
+                            <li>Apply ice pack to reduce swelling</li>
+                            <li>Monitor for confusion, dizziness, nausea</li>
+                            <li>Seek immediate help if unconsciousness occurs</li>
+                            <li>Rest and avoid physical/mental strain</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🩸</span> Nosebleed</h3>
+                        <p><strong>Treatment:</strong></p>
+                        <ol>
+                            <li>Sit upright and lean forward slightly</li>
+                            <li>Pinch soft part of nose for 10-15 minutes</li>
+                            <li>Apply ice pack to bridge of nose</li>
+                            <li>Avoid blowing nose for several hours after</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="disease-card">
+                        <h3><span class="hospital-icon">🤮</span> Food Poisoning</h3>
+                        <p><strong>Treatment:</strong></p>
+                        <ol>
+                            <li>Stay hydrated with oral rehydration solutions</li>
+                            <li>Eat bland foods (BRAT diet: bananas, rice, applesauce, toast)</li>
+                            <li>Avoid dairy, fatty foods, and caffeine</li>
+                            <li>Rest and monitor for severe symptoms</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <p><span class="hospital-icon">⚠️</span> Note: This is not a substitute for professional medical advice. Seek immediate help for emergencies.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Knowledge base with remedies and alerts
+        const REMEDY_DATABASE = {
+            "fever": {
+                "description": "Elevated body temperature",
+                "remedies": [
+                    "Take paracetamol (see dosage guide)",
+                    "Stay hydrated with water and electrolytes",
+                    "Use cool compresses on forehead",
+                    "Get plenty of rest"
+                ],
+                "seek_help": "If fever exceeds 103°F (39.4°C) or lasts more than 3 days",
+                "dosage": {
+                    "15-18": "500mg every 6 hours (max 4 doses/day)",
+                    "19+": "500-1000mg every 6 hours (max 4g/day)"
+                }
+            },
+            "headache": {
+                "description": "Pain in head or neck region",
+                "remedies": [
+                    "Rest in a quiet, dark room",
+                    "Apply cold or warm compress to forehead",
+                    "Massage neck and shoulders",
+                    "Consider over-the-counter pain relievers (see dosage)"
+                ],
+                "seek_help": "If sudden/severe headache or accompanied by vision changes",
+                "dosage": {
+                    "15-18": "Ibuprofen 200-400mg every 6-8 hours (max 1200mg/day)",
+                    "19+": "Ibuprofen 400-600mg every 6-8 hours (max 2400mg/day)"
+                }
+            },
+            "cough": {
+                "description": "Respiratory irritation",
+                "remedies": [
+                    "Drink warm honey-lemon water",
+                    "Use cough drops or lozenges",
+                    "Try steam inhalation",
+                    "Elevate your head while sleeping"
+                ],
+                "seek_help": "If coughing up blood or lasts more than 2 weeks",
+                "dosage": {
+                    "15-18": "Dextromethorphan 10-20mg every 4-6 hours (max 80mg/day)",
+                    "19+": "Dextromethorphan 20-30mg every 4-6 hours (max 120mg/day)"
+                }
+            },
+            "sore throat": {
+                "description": "Pain or irritation in throat",
+                "remedies": [
+                    "Gargle with warm salt water",
+                    "Drink warm liquids like tea with honey",
+                    "Use throat lozenges",
+                    "Rest your voice"
+                ],
+                "seek_help": "If difficulty breathing/swallowing or lasts more than a week",
+                "dosage": {
+                    "15-18": "Benzocaine lozenges (10-15mg) every 2 hours as needed",
+                    "19+": "Benzocaine lozenges (15-20mg) every 2 hours as needed"
+                }
+            },
+            "fatigue": {
+                "description": "Persistent tiredness or weakness",
+                "remedies": [
+                    "Ensure adequate sleep (7-9 hours)",
+                    "Stay hydrated and eat balanced meals",
+                    "Take short breaks during study/work",
+                    "Practice stress-reduction techniques"
+                ],
+                "seek_help": "If accompanied by other symptoms or lasts weeks",
+                "dosage": {
+                    "15-18": "Multivitamin once daily (consult doctor)",
+                    "19+": "Multivitamin once daily (consult doctor)"
+                }
+            }
+        };
+
+        // DOM elements
+        const loginSection = document.getElementById('login-section');
+        const mainApp = document.getElementById('main-app');
+        const studentIdInput = document.getElementById('student-id');
+        const passwordInput = document.getElementById('password');
+        const ageInput = document.getElementById('age');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const displayStudentId = document.getElementById('display-student-id');
+        const displayAge = document.getElementById('display-age');
+        
+        const symptomsInput = document.getElementById('symptoms');
+        const severityInput = document.getElementById('severity');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const resultsDiv = document.getElementById('results');
+        const remediesContainer = document.getElementById('remedies-container');
+        const medicalAlert = document.getElementById('medical-alert');
+        const logBtn = document.getElementById('log-btn');
+        const healthLog = document.getElementById('health-log');
+        const logEntries = document.getElementById('log-entries');
+        const clearLogBtn = document.getElementById('clear-log');
+        const historyNotice = document.getElementById('history-notice');
+        const trendAnalysis = document.getElementById('trend-analysis');
+
+        // App state
+        let currentUser = null;
+        let healthLogData = [];
+
+        // Initialize the app
+        function init() {
+            // Check if user is already logged in (from localStorage)
+            const savedUser = localStorage.getItem('healthBotUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                healthLogData = JSON.parse(localStorage.getItem(`healthLog_${currentUser.id}`)) || [];
+                showMainApp();
+            }
+            
+            // Set up event listeners
+            loginBtn.addEventListener('click', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+            analyzeBtn.addEventListener('click', analyzeSymptoms);
+            logBtn.addEventListener('click', logHealthEntry);
+            clearLogBtn.addEventListener('click', clearHealthLog);
+        }
+
+        // Handle login
+        function handleLogin() {
+            const studentId = studentIdInput.value.trim();
+            const password = passwordInput.value.trim();
+            const age = parseInt(ageInput.value);
+            
+            // Basic validation
+            if (!studentId || !password || !age || age < 15 || age > 30) {
+                alert("Please enter valid credentials (ID, password, and age between 15-30)");
+                return;
+            }
+            
+            // Demo authentication (in real app, this would be server-side)
+            if (studentId === "2023001" && password === "demo123") {
+                currentUser = {
+                    id: studentId,
+                    age: age
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('healthBotUser', JSON.stringify(currentUser));
+                healthLogData = JSON.parse(localStorage.getItem(`healthLog_${currentUser.id}`)) || [];
+                
+                showMainApp();
+            } else {
+                alert("Invalid student ID or password. Demo: ID: 2023001, Password: demo123");
+            }
+        }
+
+        // Handle logout
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('healthBotUser');
+            loginSection.classList.remove('hidden');
+            mainApp.classList.add('hidden');
+            
+            // Clear inputs
+            studentIdInput.value = '';
+            passwordInput.value = '';
+            ageInput.value = '';
+        }
+
+        // Show main application
+        function showMainApp() {
+            loginSection.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            
+            // Display user info
+            displayStudentId.textContent = currentUser.id;
+            displayAge.textContent = currentUser.age;
+            
+            // Update health log display
+            updateHealthLogDisplay();
+            analyzeTrends();
+        }
+
+        // Analyze symptoms and suggest remedies
+        function analyzeSymptoms() {
+            const symptomsText = symptomsInput.value.trim().toLowerCase();
+            if (!symptomsText) {
+                alert("Please enter your symptoms");
+                return;
+            }
+
+            const symptoms = symptomsText.split(',').map(s => s.trim());
+            const severity = parseInt(severityInput.value) || 5;
+            
+            remediesContainer.innerHTML = '';
+            medicalAlert.classList.add('hidden');
+            historyNotice.classList.add('hidden');
+
+            // Find matching remedies
+            let foundSymptoms = 0;
+            symptoms.forEach(symptom => {
+                if (REMEDY_DATABASE[symptom]) {
+                    foundSymptoms++;
+                    const remedyData = REMEDY_DATABASE[symptom];
+                    
+                    const remedyDiv = document.createElement('div');
+                    remedyDiv.className = 'remedy';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = symptom.charAt(0).toUpperCase() + symptom.slice(1);
+                    
+                    const desc = document.createElement('p');
+                    desc.textContent = remedyData.description;
+                    
+                    const remediesList = document.createElement('ul');
+                    remedyData.remedies.forEach(remedy => {
+                        const li = document.createElement('li');
+                        li.textContent = remedy;
+                        remediesList.appendChild(li);
+                    });
+                    
+                    // Add dosage information based on age
+                    if (remedyData.dosage) {
+                        const dosageDiv = document.createElement('div');
+                        dosageDiv.className = 'dosage-info';
+                        
+                        const dosageTitle = document.createElement('h4');
+                        dosageTitle.textContent = 'Recommended Dosage:';
+                        
+                        const dosageText = document.createElement('p');
+                        const ageGroup = currentUser.age <= 18 ? "15-18" : "19+";
+                        dosageText.textContent = `For your age (${currentUser.age}): ${remedyData.dosage[ageGroup]}`;
+                        
+                        dosageDiv.appendChild(dosageTitle);
+                        dosageDiv.appendChild(dosageText);
+                        remedyDiv.appendChild(dosageDiv);
+                    }
+                    
+                    remedyDiv.appendChild(title);
+                    remedyDiv.appendChild(desc);
+                    remedyDiv.appendChild(remediesList);
+                    
+                    remediesContainer.appendChild(remedyDiv);
+                    
+                    // Show medical alert if needed (based on severity)
+                    if (severity >= 7) {
+                        medicalAlert.classList.remove('hidden');
+                        medicalAlert.innerHTML = `
+                            <h3><span class="hospital-icon">⚠️</span> Medical Alert</h3>
+                            <p>Your symptoms are severe (${severity}/10). ${remedyData.seek_help}</p>
+                        `;
+                    }
+                }
+            });
+
+            // Check if we have history for these symptoms
+            checkSymptomHistory(symptoms);
+
+            if (foundSymptoms === 0) {
+                remediesContainer.innerHTML = '<p>No specific remedies found for these symptoms. Rest and hydration are generally helpful.</p>';
+            }
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        // Check if symptoms have been reported before
+        function checkSymptomHistory(currentSymptoms) {
+            if (healthLogData.length === 0) return;
+
+            const recentEntries = healthLogData.slice(-3); // Check last 3 entries
+            const recurringSymptoms = {};
+            
+            currentSymptoms.forEach(symptom => {
+                recentEntries.forEach(entry => {
+                    if (entry.symptoms.includes(symptom)) {
+                        recurringSymptoms[symptom] = (recurringSymptoms[symptom] || 0) + 1;
+                    }
+                });
+            });
+
+            if (Object.keys(recurringSymptoms).length > 0) {
+                historyNotice.classList.remove('hidden');
+                let noticeText = '<h3><span class="hospital-icon">📌</span> History Notice</h3><p>You have reported these symptoms recently: ';
+                
+                const symptomTexts = [];
+                for (const [symptom, count] of Object.entries(recurringSymptoms)) {
+                    symptomTexts.push(`${symptom} (${count} times)`);
+                }
+                
+                noticeText += symptomTexts.join(', ') + '. Consider consulting a doctor if they persist.</p>';
+                historyNotice.innerHTML = noticeText;
+            }
+        }
+
+        // Log health entry
+        function logHealthEntry() {
+            const symptomsText = symptomsInput.value.trim().toLowerCase();
+            if (!symptomsText) {
+                alert("Please enter symptoms before logging");
+                return;
+            }
+
+            const symptoms = symptomsText.split(',').map(s => s.trim());
+            const severity = parseInt(severityInput.value) || 5;
+            
+            const entry = {
+                date: new Date().toISOString(),
+                symptoms: symptoms,
+                severity: severity,
+                age: currentUser.age
+            };
+            
+            healthLogData.push(entry);
+            localStorage.setItem(`healthLog_${currentUser.id}`, JSON.stringify(healthLogData));
+            
+            updateHealthLogDisplay();
+            analyzeTrends();
+            
+            alert("Health entry logged successfully!");
+        }
+
+        // Update health log display
+        function updateHealthLogDisplay() {
+            if (healthLogData.length === 0) {
+                logEntries.innerHTML = '<p>No health entries yet. Start by logging your symptoms.</p>';
+                return;
+            }
+
+            logEntries.innerHTML = '';
+            healthLogData.slice().reverse().forEach((entry, index) => {
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'log-entry';
+                
+                const date = new Date(entry.date);
+                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                entryDiv.innerHTML = `
+                    <h3>${dateStr} (Age: ${entry.age})</h3>
+                    <p><strong>Symptoms:</strong> ${entry.symptoms.join(', ')}</p>
+                    <p><strong>Severity:</strong> ${entry.severity}/10</p>
+                `;
+                
+                logEntries.appendChild(entryDiv);
+            });
+        }
+
+        // Analyze symptom trends
+        function analyzeTrends() {
+            if (healthLogData.length < 3) {
+                trendAnalysis.innerHTML = '<p>More data needed to identify trends (minimum 3 entries).</p>';
+                return;
+            }
+
+            // Count symptom frequency
+            const symptomFrequency = {};
+            healthLogData.forEach(entry => {
+                entry.symptoms.forEach(symptom => {
+                    symptomFrequency[symptom] = (symptomFrequency[symptom] || 0) + 1;
+                });
+            });
+
+            // Find most common symptoms
+            const sortedSymptoms = Object.entries(symptomFrequency)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3); // Top 3 symptoms
+
+            let trendText = '<h3><span class="hospital-icon">📈</span> Your Symptom Trends</h3><ul>';
+            sortedSymptoms.forEach(([symptom, count]) => {
+                const percentage = Math.round((count / healthLogData.length) * 100);
+                trendText += `<li><span class="trend">${symptom}</span>: Reported in ${percentage}% of your entries</li>`;
+            });
+            trendText += '</ul>';
+
+            // Add severity analysis
+            const avgSeverity = (healthLogData.reduce((sum, entry) => sum + entry.severity, 0) / healthLogData.length).toFixed(1);
+            trendText += `<p>Average severity score: ${avgSeverity}/10</p>`;
+            
+            trendAnalysis.innerHTML = trendText;
+        }
+
+        // Clear health log
+        function clearHealthLog() {
+            if (confirm("Are you sure you want to clear your entire health history?")) {
+                healthLogData = [];
+                localStorage.setItem(`healthLog_${currentUser.id}`, JSON.stringify(healthLogData));
+                updateHealthLogDisplay();
+                trendAnalysis.innerHTML = '';
+            }
+        }
+
+        // Tab navigation
+        function openTab(tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            const tabButtons = document.getElementsByClassName('tab-btn');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
